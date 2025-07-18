@@ -5,6 +5,12 @@
     --text-primary: #e3e3e3;
     --text-secondary: #a3abb3;
     --text-accent: #7ab8ff;
+    --direction: ltr;
+    --start: left;
+    --end: right;
+    --flex-start: flex-start;
+    --flex-end: flex-end;
+    --transform-rtl: 1;
 
     width: 100%;
     height: 100%;
@@ -14,6 +20,30 @@
 
     color-scheme: dark;
     background-color: var(--surface-primary);
+}
+
+[dir="rtl"] {
+    --start: right;
+    --end: left;
+    --flex-start: flex-end;
+    --flex-end: flex-start;
+    --transform-rtl: -1;
+}
+
+/* Пример адаптации компонентов */
+.article-card {
+    text-align: var(--start);
+    padding: 16px var(--end) 16px var(--start);
+}
+
+.icon-arrow {
+    transform: scaleX(var(--transform-rtl));
+}
+
+/* Для абсолютного позиционирования */
+.dropdown-menu {
+    left: var(--start);
+    right: auto;
 }
 
 * {

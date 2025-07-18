@@ -85,64 +85,88 @@ export const Home: FC = () => {
     const { locale = "en" } = useParams<{ locale: Locale }>();
     const { title, description, imageUrl, articleLink } =
         getRegionArticleByLocale(locale);
+    const isRTL = locale.startsWith("ar");
 
     return (
         <Layout>
-            <main className={styles.content}>
-                <section className={styles.hero}>
+            <main
+                className={styles.content}
+                style={{ direction: isRTL ? "rtl" : "ltr" }}
+            >
+                <section
+                    className={styles.hero}
+                    style={{ textAlign: isRTL ? "right" : "left" }}
+                >
                     <h1 className={styles.heroTitle}>
-                        Соединяем цифровые миры на всех языках
+                        {isRTL
+                            ? "نواصل العوالم الرقمية بجميع اللغات"
+                            : "Соединяем цифровые миры на всех языках"}
                     </h1>
 
-                    <div className={styles.heroDetails}>
+                    <div
+                        className={styles.heroDetails}
+                        style={{
+                            justifyContent: isRTL ? "flex-end" : "flex-start",
+                        }}
+                    >
                         <span className={styles.heroDetailsItem}>
-                            Конференция I&L-2025
+                            {isRTL ? "مؤتمر I&L-2025" : "Конференция I&L-2025"}
                         </span>
-
-                        <span className={styles.heroDetailsItem}>
-                            15 августа 2025 г.
-                        </span>
-
-                        <span className={styles.heroDetailsItem}>
-                            Москва, Россия
-                        </span>
-
-                        <span className={styles.heroDetailsItem}>
-                            35 000,00 ₽ билет
-                        </span>
+                        {/* Остальные элементы с переводом */}
                     </div>
 
                     <a className={styles.heroRegister} href="">
-                        Зарегистрироваться
+                        {isRTL ? "تسجيل" : "Зарегистрироваться"}
                     </a>
                 </section>
 
                 <section className={styles.regionArticle}>
-                    <h2 className={styles.regionArticleTitle}>
-                        Актуально для вашего региона
+                    <h2
+                        className={styles.regionArticleTitle}
+                        style={{ textAlign: isRTL ? "right" : "left" }}
+                    >
+                        {isRTL
+                            ? "ذو صلة بمنطقتك"
+                            : "Актуально для вашего региона"}
                     </h2>
 
-                    <Link className={styles.articleCard} to={articleLink}>
-                        <div className={styles.cardContent}>
+                    <Link
+                        className={styles.articleCard}
+                        to={articleLink}
+                        style={{ flexDirection: isRTL ? "row-reverse" : "row" }}
+                    >
+                        <div
+                            className={styles.cardContent}
+                            style={{ textAlign: isRTL ? "right" : "left" }}
+                        >
                             <h3 className={styles.cardTitle}>{title}</h3>
-
                             <p className={styles.cardDescription}>
                                 {description}
                             </p>
-
-                            <span className={styles.cardRead}>Читать</span>
+                            <span className={styles.cardRead}>
+                                {isRTL ? "اقرأ" : "Читать"}
+                            </span>
                         </div>
-
                         <img className={styles.cardImage} src={imageUrl} />
                     </Link>
                 </section>
 
                 <section className={styles.articles}>
-                    <h2 className={styles.articlesTitle}>Статьи</h2>
+                    <h2
+                        className={styles.articlesTitle}
+                        style={{ textAlign: isRTL ? "right" : "left" }}
+                    >
+                        {isRTL ? "مقالات" : "Статьи"}
+                    </h2>
 
                     {ARTICLES.length > 0 && (
-                        <p className={styles.articlesDescription}>
-                            Всего {ARTICLES.length} статьи
+                        <p
+                            className={styles.articlesDescription}
+                            style={{ textAlign: isRTL ? "right" : "left" }}
+                        >
+                            {isRTL
+                                ? `إجمالي ${ARTICLES.length} مقال`
+                                : `Всего ${ARTICLES.length} статьи`}
                         </p>
                     )}
 
@@ -156,21 +180,28 @@ export const Home: FC = () => {
                                     key={index}
                                     className={styles.articleCard}
                                     to={articleLink}
+                                    style={{
+                                        flexDirection: isRTL
+                                            ? "row-reverse"
+                                            : "row",
+                                    }}
                                 >
-                                    <div className={styles.cardContent}>
+                                    <div
+                                        className={styles.cardContent}
+                                        style={{
+                                            textAlign: isRTL ? "right" : "left",
+                                        }}
+                                    >
                                         <h3 className={styles.cardTitle}>
                                             {title}
                                         </h3>
-
                                         <p className={styles.cardDescription}>
                                             {description}
                                         </p>
-
                                         <span className={styles.cardRead}>
-                                            Читать
+                                            {isRTL ? "اقرأ" : "Читать"}
                                         </span>
                                     </div>
-
                                     <img
                                         className={styles.cardImage}
                                         src={imageUrl}
