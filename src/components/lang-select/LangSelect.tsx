@@ -1,9 +1,10 @@
-import { type FC, useState } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { type FC, useEffect,useState } from "react";
+import { Link, useLocation, useNavigate,useParams } from "react-router-dom";
 
-import { SUPPORTED_LANGS } from "@/constants";
+import { DEFAULT_LANG,SUPPORTED_LANGS, SUPPORTED_LOCALES } from "@/constants";
 import { DoneIcon, EarthIcon } from "@/icons";
-import type { Lang } from "@/types";
+import { geoService } from "@/lib/geo-service";
+import type { Lang, Locale } from "@/types";
 
 import { useClickOutside } from "./hooks";
 import styles from "./styles.module.css";
@@ -14,28 +15,41 @@ const LANG_LABEL: Record<Lang, string> = {
     ar: "اَلْعَرَبِيَّةُ",
 };
 
-interface IconWrapperProps {
-    style?: React.CSSProperties;
-    children: React.ReactNode;
-}
-
-const IconWrapper: FC<IconWrapperProps> = ({ style, children }) => (
-    <div style={style}>{children}</div>
-);
+const LANG_COOKIE_NAME = "i18n-lang";
 
 export const LangSelect: FC = () => {
     const [showMenu, setShowMenu] = useState(false);
-    const { locale = "en" } = useParams<{ locale?: string }>();
+    const { locale: urlLocale = "" } = useParams<{ locale?: string }>();
     const location = useLocation();
+    const navigate = useNavigate();
     const langSelectRef = useClickOutside<HTMLDivElement>(() => setShowMenu(false));
 
-    const currentLang = locale.split("-")[0] as Lang;
-    const isRTL = locale.startsWith("ar");
+    const [currentLang, currentRegion] = urlLocale.split("-") as [Lang, string?];
+    const isRTL = currentLang === "ar";
+
+    useEffect(() => {
+        const browserLang = navigator.language.split("-")[0];
+        const cookieLang = document.cookie
+            .split("; ")
+            .find(row => row.startsWith(`${LANG_COOKIE_NAME}=`))
+            ?.split("=")[1];
+
+        const resolvedLocale = resolveLocale({
+            urlLocale,
+            cookieLang,
+            browserLang,
+            query: location.search,
+        });
+
+        if (urlLocale !== resolvedLocale) {
+            const newPath = location.pathname.replace(`/${urlLocale}`, `/${resolvedLocale}`);
+            navigate(`${newPath}${location.search}`, { replace: true });
+        }
+    }, [urlLocale, location, navigate]);
 
     const buildNewPath = (newLang: Lang): string => {
-        const region = locale.split("-")[1];
-        const newLocale = region ? `${newLang}-${region}` : newLang;
-        const pathWithoutLocale = location.pathname.replace(`/${locale}`, "");
+        const newLocale = currentRegion ? `${newLang}-${currentRegion}` : newLang;
+        const pathWithoutLocale = location.pathname.replace(`/${urlLocale}`, "");
         return `/${newLocale}${pathWithoutLocale}${location.search}`;
     };
 
@@ -49,9 +63,9 @@ export const LangSelect: FC = () => {
                 <span className={styles.langSelectText}>
                     {LANG_LABEL[currentLang]}
                 </span>
-                <IconWrapper style={{ transform: isRTL ? 'scaleX(-1)' : 'none' }}>
+                <div style={{ transform: isRTL ? 'scaleX(-1)' : 'none' }}>
                     <EarthIcon />
-                </IconWrapper>
+                </div>
             </button>
 
             {showMenu && (
@@ -68,7 +82,10 @@ export const LangSelect: FC = () => {
                         <Link to={buildNewPath(lang)} key={lang}>
                             <li
                                 className={styles.langSelectMenuItem}
-                                onClick={() => setShowMenu(false)}
+                                onClick={() => {
+                                    setShowMenu(false);
+                                    document.cookie = `${LANG_COOKIE_NAME}=${lang}; path=/; max-age=31536000`;
+                                }}
                                 style={{ flexDirection: isRTL ? 'row-reverse' : 'row' }}
                             >
                                 <span className={styles.langSelectMenuItemText}>
@@ -83,3 +100,41 @@ export const LangSelect: FC = () => {
         </div>
     );
 };
+
+function resolveLocale({
+    urlLocale,
+    cookieLang,
+    browserLang,
+    query,
+}: {
+    urlLocale?: string;
+    cookieLang?: string;
+    browserLang?: string;
+    query: string;
+}): Locale {
+    if (urlLocale && SUPPORTED_LOCALES.includes(urlLocale as Locale)) {
+        return urlLocale as Locale;
+    }
+
+    const langFromUrl = urlLocale?.split("-")[0];
+    const lang = (
+        langFromUrl || 
+        cookieLang || 
+        browserLang || 
+        DEFAULT_LANG
+    ) as Lang;
+
+    const currentRegion = geoService.getCurrentRegion(query);
+    
+    const fullLocale = `${lang}-${currentRegion}` as Locale;
+
+    if (SUPPORTED_LOCALES.includes(fullLocale)) {
+        return fullLocale;
+    }
+
+    if (SUPPORTED_LOCALES.includes(lang)) {
+        return lang;
+    }
+
+    return DEFAULT_LANG;
+}
