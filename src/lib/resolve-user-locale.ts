@@ -1,20 +1,7 @@
+import { DEFAULT_LANG, SUPPORTED_LANGS, SUPPORTED_LOCALES } from "@/constants";
 import type { Lang, Locale } from "@/types";
 
-import {
-    DEFAULT_LANG,
-    SUPPORTED_LANGS,
-    SUPPORTED_LOCALES,
-} from "../constants/index";
 import { geoService } from "./geo-service";
-
-function isSupportedLang(lang: string): lang is Lang {
-    return (SUPPORTED_LANGS as readonly string[]).includes(lang);
-}
-
-function isSupportedLocale(locale: string): locale is Locale {
-    return (SUPPORTED_LOCALES as readonly string[]).includes(locale);
-}
-
 
 export function resolveUserLocale({
     urlLocale,
@@ -27,17 +14,45 @@ export function resolveUserLocale({
     browserLang?: string;
     query: string;
 }): Locale {
-    const langFromUrl = urlLocale?.split("-")[0];
-    const regionFromGeo = geoService.getCurrentRegion(query);
+    // 1. Если URL содержит поддерживаемую локаль - используем ее
+    if (urlLocale && isSupportedLocale(urlLocale)) {
+        return urlLocale;
+    }
 
-    const lang = langFromUrl || cookieLang || browserLang || DEFAULT_LANG;
-    const fullLocale = `${lang}-${regionFromGeo}`;
+    // 2. Определяем язык (URL -> куки -> браузер -> по умолчанию)
+    const lang = getPreferredLang(urlLocale, cookieLang, browserLang);
+    
+    // 3. Определяем регион
+    const region = geoService.getCurrentRegion(query);
+    const fullLocale = `${lang}-${region}`;
 
-    if (!isSupportedLang(lang)) return DEFAULT_LANG;
+    // 4. Проверяем поддерживается ли локаль с регионом
+    if (isSupportedLocale(fullLocale)) {
+        return fullLocale;
+    }
 
-    if (isSupportedLocale(fullLocale)) return fullLocale;
+    // 5. Проверяем поддерживается ли язык без региона
+    if (isSupportedLocale(lang)) {
+        return lang;
+    }
 
-    if (isSupportedLocale(lang)) return lang;
-
+    // 6. Возвращаем локаль по умолчанию
     return DEFAULT_LANG;
+}
+
+function getPreferredLang(
+    urlLang?: string,
+    cookieLang?: string,
+    browserLang?: string
+): Lang {
+    const lang = urlLang?.split("-")[0] || cookieLang || browserLang || DEFAULT_LANG;
+    return isSupportedLang(lang) ? lang : DEFAULT_LANG;
+}
+
+function isSupportedLang(lang: string): lang is Lang {
+    return (SUPPORTED_LANGS as readonly string[]).includes(lang);
+}
+
+function isSupportedLocale(locale: string): locale is Locale {
+    return (SUPPORTED_LOCALES as readonly string[]).includes(locale);
 }
