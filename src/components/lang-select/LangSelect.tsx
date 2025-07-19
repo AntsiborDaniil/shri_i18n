@@ -1,7 +1,7 @@
-import { type FC, useEffect,useState } from "react";
-import { Link, useLocation, useNavigate,useParams } from "react-router-dom";
+import { type FC, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
-import { DEFAULT_LANG,SUPPORTED_LANGS, SUPPORTED_LOCALES } from "@/constants";
+import { DEFAULT_LANG, SUPPORTED_LANGS, SUPPORTED_LOCALES } from "@/constants";
 import { DoneIcon, EarthIcon } from "@/icons";
 import { geoService } from "@/lib/geo-service";
 import type { Lang, Locale } from "@/types";
@@ -22,16 +22,22 @@ export const LangSelect: FC = () => {
     const { locale: urlLocale = "" } = useParams<{ locale?: string }>();
     const location = useLocation();
     const navigate = useNavigate();
-    const langSelectRef = useClickOutside<HTMLDivElement>(() => setShowMenu(false));
+    const langSelectRef = useClickOutside<HTMLDivElement>(() =>
+        setShowMenu(false)
+    );
 
-    const [currentLang, currentRegion] = urlLocale.split("-") as [Lang, string?];
+    const [currentLang] = urlLocale.split("-") as [
+        Lang,
+        string?,
+    ];
+
     const isRTL = currentLang === "ar";
 
     useEffect(() => {
         const browserLang = navigator.language.split("-")[0];
         const cookieLang = document.cookie
             .split("; ")
-            .find(row => row.startsWith(`${LANG_COOKIE_NAME}=`))
+            .find((row) => row.startsWith(`${LANG_COOKIE_NAME}=`))
             ?.split("=")[1];
 
         const resolvedLocale = resolveLocale({
@@ -42,19 +48,30 @@ export const LangSelect: FC = () => {
         });
 
         if (urlLocale !== resolvedLocale) {
-            const newPath = location.pathname.replace(`/${urlLocale}`, `/${resolvedLocale}`);
+            const newPath = location.pathname.replace(
+                `/${urlLocale}`,
+                `/${resolvedLocale}`
+            );
             navigate(`${newPath}${location.search}`, { replace: true });
         }
     }, [urlLocale, location, navigate]);
 
     const buildNewPath = (newLang: Lang): string => {
-        const newLocale = currentRegion ? `${newLang}-${currentRegion}` : newLang;
-        const pathWithoutLocale = location.pathname.replace(`/${urlLocale}`, "");
+        const region = geoService.getCurrentRegion(location.search);
+        const newLocale = newLang === "ru" ? `${newLang}-${region}` : newLang;
+        const pathWithoutLocale = location.pathname.replace(
+            `/${urlLocale}`,
+            ""
+        );
         return `/${newLocale}${pathWithoutLocale}${location.search}`;
     };
 
     return (
-        <div className={styles.langSelect} ref={langSelectRef} style={{ direction: 'ltr' }}>
+        <div
+            className={styles.langSelect}
+            ref={langSelectRef}
+            style={{ direction: "ltr" }}
+        >
             <button
                 className={styles.langSelectButton}
                 onClick={() => setShowMenu((s) => !s)}
@@ -63,19 +80,19 @@ export const LangSelect: FC = () => {
                 <span className={styles.langSelectText}>
                     {LANG_LABEL[currentLang]}
                 </span>
-                <div style={{ transform: isRTL ? 'scaleX(-1)' : 'none' }}>
+                <div style={{ transform: isRTL ? "scaleX(-1)" : "none" }}>
                     <EarthIcon />
                 </div>
             </button>
 
             {showMenu && (
-                <ul 
-                    className={styles.langSelectMenu} 
+                <ul
+                    className={styles.langSelectMenu}
                     data-testid="lang-select-menu"
                     style={{
-                        right: isRTL ? 'auto' : '0',
-                        left: isRTL ? '0' : 'auto',
-                        textAlign: isRTL ? 'right' : 'left'
+                        right: isRTL ? "auto" : "0",
+                        left: isRTL ? "0" : "auto",
+                        textAlign: isRTL ? "right" : "left",
                     }}
                 >
                     {SUPPORTED_LANGS.map((lang) => (
@@ -86,7 +103,11 @@ export const LangSelect: FC = () => {
                                     setShowMenu(false);
                                     document.cookie = `${LANG_COOKIE_NAME}=${lang}; path=/; max-age=31536000`;
                                 }}
-                                style={{ flexDirection: isRTL ? 'row-reverse' : 'row' }}
+                                style={{
+                                    flexDirection: isRTL
+                                        ? "row-reverse"
+                                        : "row",
+                                }}
                             >
                                 <span className={styles.langSelectMenuItemText}>
                                     {LANG_LABEL[lang]}
@@ -117,15 +138,13 @@ function resolveLocale({
     }
 
     const langFromUrl = urlLocale?.split("-")[0];
-    const lang = (
-        langFromUrl || 
-        cookieLang || 
-        browserLang || 
-        DEFAULT_LANG
-    ) as Lang;
+    const lang = (langFromUrl ||
+        cookieLang ||
+        browserLang ||
+        DEFAULT_LANG) as Lang;
 
     const currentRegion = geoService.getCurrentRegion(query);
-    
+
     const fullLocale = `${lang}-${currentRegion}` as Locale;
 
     if (SUPPORTED_LOCALES.includes(fullLocale)) {

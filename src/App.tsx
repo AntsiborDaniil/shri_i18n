@@ -34,30 +34,25 @@ const ScrollToTop: FC = () => {
 
 const LocaleRedirect: FC = () => {
     const { pathname, search } = useLocation();
-    // Get browser language from navigator
     const browserLang = navigator.language.split("-")[0];
-    // Get cookie lang (simplified - in a real app you'd use a cookie library)
     const cookieLang = document.cookie
         .split("; ")
         .find((row) => row.startsWith(`${LANG_COOKIE_NAME}=`))
         ?.split("=")[1];
 
-    // Resolve the user's locale
+
     const locale = resolveUserLocale({
         cookieLang,
         browserLang,
         query: search,
     });
 
-    // Remove leading slash if present
     const cleanPath = pathname.startsWith("/") ? pathname.slice(1) : pathname;
 
-    // If the path already starts with a supported locale, don't redirect
     if (cleanPath.split("/")[0] === locale) {
         return <Navigate to={pathname + search} />;
     }
 
-    // Redirect to the same path but with the resolved locale
     return <Navigate to={`/${locale}/${cleanPath}` + search} replace />;
 };
 

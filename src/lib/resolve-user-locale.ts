@@ -17,27 +17,32 @@ function isSupportedLocale(locale: string): locale is Locale {
 
 
 export function resolveUserLocale({
-    urlLocale,
-    cookieLang,
-    browserLang,
-    query,
+  urlLocale,
+  cookieLang,
+  browserLang,
+  query,
 }: {
-    urlLocale?: string;
-    cookieLang?: string;
-    browserLang?: string;
-    query: string;
+  urlLocale?: string;
+  cookieLang?: string;
+  browserLang?: string;
+  query: string;
 }): Locale {
-    const langFromUrl = urlLocale?.split("-")[0];
-    const regionFromGeo = geoService.getCurrentRegion(query);
+  const langFromUrl = urlLocale?.split("-")[0];
+  const regionFromGeo = geoService.getCurrentRegion(query);
+  const lang = langFromUrl || cookieLang || browserLang || DEFAULT_LANG;
 
-    const lang = langFromUrl || cookieLang || browserLang || DEFAULT_LANG;
+  if (!isSupportedLang(lang)) return DEFAULT_LANG;
+
+  // Если русский язык, всегда возвращаем с регионом из geoService
+  if (lang === "ru") {
     const fullLocale = `${lang}-${regionFromGeo}`;
-
-    if (!isSupportedLang(lang)) return DEFAULT_LANG;
-
     if (isSupportedLocale(fullLocale)) return fullLocale;
+    // fallback — если регион не поддерживается
+    return lang;
+  }
 
-    if (isSupportedLocale(lang)) return lang;
+  // Для остальных — просто язык без региона, если поддерживается
+  if (isSupportedLocale(lang)) return lang;
 
-    return DEFAULT_LANG;
+  return DEFAULT_LANG;
 }
