@@ -1,24 +1,32 @@
-import { type FC } from "react";
+import { type FC, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 
 import { Layout } from "@/components";
 
 import styles from "./styles.module.css";
 
-export const ArticleAr: FC = () => (
-    <Layout>
-        <main className={styles.article}>
-            <h1>
-                Локализация для арабоязычного мира: RTL, форматы и культурные
-                коды
-            </h1>
+export const ArticleAr: FC = () => {
+  const { locale = "en" } = useParams<{ locale: string }>();
+  const { t, i18n } = useTranslation();
+  const [isLoading, setIsLoading] = useState(true);
 
-            <p>
-                Интерфейсы на арабском языке требуют переосмысления привычного
-                порядка элементов: направление письма меняется на RTL. В статье
-                мы объясняем, как грамотно адаптировать верстку, типографику и
-                иконки, чтобы интерфейс выглядел естественно для арабоязычных
-                пользователей, и при этом оставался универсальным.
-            </p>
-        </main>
+  useEffect(() => {
+    i18n.changeLanguage(locale).then(() => {
+      setIsLoading(false);
+    });
+  }, [locale, i18n]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <Layout>
+      <main className={styles.article}>
+        <h1>{t("articleAr.title")}</h1>
+        <p>{t("articleAr.text")}</p>
+      </main>
     </Layout>
-);
+  );
+};

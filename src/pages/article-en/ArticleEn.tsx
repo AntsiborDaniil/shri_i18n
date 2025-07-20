@@ -1,24 +1,34 @@
-import { type FC } from "react";
+import { type FC,useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 
 import { Layout } from "@/components";
 
 import styles from "./styles.module.css";
 
-export const ArticleEn: FC = () => (
-    <Layout>
-        <main className={styles.article}>
-            <h1>
-                Проектирование для глобальной аудитории: английский как
-                универсальный язык
-            </h1>
+export const ArticleEn: FC = () => {
+    const { locale = "en" } = useParams<{ locale?: string }>();
+    const { t, i18n } = useTranslation();
+    const [isLoading, setIsLoading] = useState(true);
 
-            <p>
-                Английский язык часто используется в интерфейсах как
-                универсальный, особенно на этапе MVP или при работе на
-                международный рынок. Мы делимся рекомендациями, как писать
-                интерфейсные тексты, которые останутся понятными, нейтральными и
-                легко поддающимися переводу в будущем.
-            </p>
-        </main>
-    </Layout>
-);
+    useEffect(() => {
+        const changeLanguage = async () => {
+            await i18n.changeLanguage(locale);
+            setIsLoading(false);
+        };
+
+        changeLanguage();
+    }, [locale, i18n]);
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+    return (
+        <Layout>
+            <main className={styles.article} dir={i18n.dir()}>
+                <h1>{t("articleEn.title")}</h1>
+                <p>{t("articleEn.text")}</p>
+            </main>
+        </Layout>
+    );
+};

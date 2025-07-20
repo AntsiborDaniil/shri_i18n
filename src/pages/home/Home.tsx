@@ -1,4 +1,5 @@
-import { type FC } from "react";
+import { type FC, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 
 import articleAr from "@/assets/article-ar.jpg";
@@ -14,204 +15,170 @@ import type { Locale } from "@/types";
 import styles from "./styles.module.css";
 
 const ARTICLES = [
-    {
-        title: "Какие иконки нужно разворачивать для RTL, а какие — нет?",
-        description:
-            "Не все иконки требуют зеркального отражения при переключении на RTL-языки. Разбираемся, какие иконки зависят от направления текста, а какие — универсальны",
-        imageUrl: articleRtlIcons,
-        articleLink: "article/rtl-icons",
-    },
-    {
-        title: "Логические CSS-свойства в интерфейсах с поддержкой i18n",
-        description:
-            "Узнайте, как логические CSS-свойства помогают создавать адаптивные интерфейсы для разных языков и направлений письма — без усложнения кода и дублирования стилей.",
-        imageUrl: articleCss,
-        articleLink: "article/css",
-    },
+  {
+    key: "rtlIcons",
+    imageUrl: articleRtlIcons,
+    articleLink: "article/rtl-icons",
+  },
+  {
+    key: "css",
+    imageUrl: articleCss,
+    articleLink: "article/css",
+  },
 ];
 
 const getRegionArticleByLocale = (locale: Locale) => {
-    switch (locale) {
-        case "ru":
-        case "ru-RU":
-            return {
-                title: "Как адаптировать веб-приложение под российских пользователей: нюансы локализации",
-                description:
-                    "Изучаем предпочтения русскоязычных пользователей, числовые и валютные форматы, перевод интерфейса и юридические аспекты (например, закон о персональных данных)",
-                imageUrl: articleL10nRu,
-                articleLink: "article/l10n-ru",
-            };
-
-        case "ru-BY":
-            return {
-                title: "Двухъязычный интерфейс: как учесть русский и белорусский языки в одном продукте",
-                description:
-                    "Рассматриваем подходы к реализации двуязычного интерфейса, стандарты перевода и культурные отличия. Особое внимание — контенту на белорусском языке",
-                imageUrl: articleUiBy,
-                articleLink: "article/ui-by",
-            };
-
-        case "ru-KZ":
-            return {
-                title: "Русский и казахский: эффективная локализация для Казахстана",
-                description:
-                    "Разбираем сценарии, когда приложение должно быть доступно сразу на двух языках, и особенности казахской локали (в т.ч. поддержка латиницы и кириллицы, особенности форматов дат)",
-                imageUrl: articleI18nKz,
-                articleLink: "article/i18n-kz",
-            };
-
-        case "ar":
-            return {
-                title: "Локализация для арабоязычного мира: RTL, форматы и культурные коды",
-                description:
-                    "От адаптации интерфейса под направление письма справа налево до выбора правильных формулировок — ключевые аспекты локализации для стран Ближнего Востока и Северной Африки",
-                imageUrl: articleAr,
-                articleLink: "article/ar",
-            };
-
-        case "en":
-        default:
-            return {
-                title: "Проектирование для глобальной аудитории: английский как универсальный язык",
-                description:
-                    "Почему английский часто используется как язык по умолчанию в международных приложениях и как писать интерфейсные тексты, которые будут понятны, культурно нейтральны и удобны для последующей локализации",
-                imageUrl: articleEn,
-                articleLink: "article/en",
-            };
-    }
+  switch (locale) {
+    case "ru":
+    case "ru-RU":
+      return {
+        key: "ru",
+        imageUrl: articleL10nRu,
+        articleLink: "article/l10n-ru",
+      };
+    case "ru-BY":
+      return {
+        key: "by",
+        imageUrl: articleUiBy,
+        articleLink: "article/ui-by",
+      };
+    case "ru-KZ":
+      return {
+        key: "kz",
+        imageUrl: articleI18nKz,
+        articleLink: "article/i18n-kz",
+      };
+    case "ar":
+      return {
+        key: "ar",
+        imageUrl: articleAr,
+        articleLink: "article/ar",
+      };
+    case "en":
+    default:
+      return {
+        key: "en",
+        imageUrl: articleEn,
+        articleLink: "article/en",
+      };
+  }
 };
 
 export const Home: FC = () => {
-    const { locale = "en" } = useParams<{ locale: Locale }>();
-    const { title, description, imageUrl, articleLink } =
-        getRegionArticleByLocale(locale);
-    const isRTL = locale.startsWith("ar");
+  const { locale = "en" } = useParams<{ locale: Locale }>();
+  const { t, i18n } = useTranslation();
+  const [isLoading, setIsLoading] = useState(true);
 
-    return (
-        <Layout>
-            <main
-                className={styles.content}
-                style={{ direction: isRTL ? "rtl" : "ltr" }}
+  useEffect(() => {
+    i18n.changeLanguage(locale).finally(() => setIsLoading(false));
+  }, [locale, i18n]);
+
+  if (isLoading) return <div>Loading...</div>;
+
+  const regionArticle = getRegionArticleByLocale(locale);
+  const isRTL = i18n.dir() === "rtl";
+
+  return (
+    <Layout>
+      <main className={styles.content} dir={i18n.dir()}>
+        <section
+          className={styles.hero}
+          style={{ textAlign: isRTL ? "right" : "left" }}
+        >
+          <h1 className={styles.heroTitle}>
+            {t("homePage.hero.title")}
+          </h1>
+
+          <div
+            className={styles.heroDetails}
+            style={{ justifyContent: isRTL ? "flex-end" : "flex-start" }}
+          >
+            <span className={styles.heroDetailsItem}>
+              {t("homePage.hero.conference", { year: 2025 })}
+            </span>
+          </div>
+
+          <a className={styles.heroRegister}>
+            {t("homePage.hero.register")}
+          </a>
+        </section>
+
+        <section className={styles.regionArticle}>
+          <h2
+            className={styles.regionArticleTitle}
+            style={{ textAlign: isRTL ? "right" : "left" }}
+          >
+            {t("homePage.regionArticle.title")}
+          </h2>
+
+          <Link
+            className={styles.articleCard}
+            to={regionArticle.articleLink}
+            style={{ flexDirection: isRTL ? "row-reverse" : "row" }}
+          >
+            <div
+              className={styles.cardContent}
+              style={{ textAlign: isRTL ? "right" : "left" }}
             >
-                <section
-                    className={styles.hero}
-                    style={{ textAlign: isRTL ? "right" : "left" }}
+              <h3 className={styles.cardTitle}>
+                {t(`homePage.${regionArticle.key}Article.title`)}
+              </h3>
+              <p className={styles.cardDescription}>
+                {t(`homePage.${regionArticle.key}Article.description`)}
+              </p>
+              <span className={styles.cardRead}>
+                {t("homePage.article.read")}
+              </span>
+            </div>
+            <img className={styles.cardImage} src={regionArticle.imageUrl} />
+          </Link>
+        </section>
+
+        <section className={styles.articles}>
+          <h2
+            className={styles.articlesTitle}
+            style={{ textAlign: isRTL ? "right" : "left" }}
+          >
+            {t("homePage.articles.title")}
+          </h2>
+
+          {ARTICLES.length > 0 && (
+            <p
+              className={styles.articlesDescription}
+              style={{ textAlign: isRTL ? "right" : "left" }}
+            >
+              {t("homePage.articles.description", { count: ARTICLES.length })}
+            </p>
+          )}
+
+          <div className={styles.articlesList}>
+            {ARTICLES.map(({ key, imageUrl, articleLink }, index) => (
+              <Link
+                key={index}
+                className={styles.articleCard}
+                to={articleLink}
+                style={{ flexDirection: isRTL ? "row-reverse" : "row" }}
+              >
+                <div
+                  className={styles.cardContent}
+                  style={{ textAlign: isRTL ? "right" : "left" }}
                 >
-                    <h1 className={styles.heroTitle}>
-                        {isRTL
-                            ? "نواصل العوالم الرقمية بجميع اللغات"
-                            : "Соединяем цифровые миры на всех языках"}
-                    </h1>
-
-                    <div
-                        className={styles.heroDetails}
-                        style={{
-                            justifyContent: isRTL ? "flex-end" : "flex-start",
-                        }}
-                    >
-                        <span className={styles.heroDetailsItem}>
-                            {isRTL ? "مؤتمر I&L-2025" : "Конференция I&L-2025"}
-                        </span>
-                        {/* Остальные элементы с переводом */}
-                    </div>
-
-                    <a className={styles.heroRegister} href="">
-                        {isRTL ? "تسجيل" : "Зарегистрироваться"}
-                    </a>
-                </section>
-
-                <section className={styles.regionArticle}>
-                    <h2
-                        className={styles.regionArticleTitle}
-                        style={{ textAlign: isRTL ? "right" : "left" }}
-                    >
-                        {isRTL
-                            ? "ذو صلة بمنطقتك"
-                            : "Актуально для вашего региона"}
-                    </h2>
-
-                    <Link
-                        className={styles.articleCard}
-                        to={articleLink}
-                        style={{ flexDirection: isRTL ? "row-reverse" : "row" }}
-                    >
-                        <div
-                            className={styles.cardContent}
-                            style={{ textAlign: isRTL ? "right" : "left" }}
-                        >
-                            <h3 className={styles.cardTitle}>{title}</h3>
-                            <p className={styles.cardDescription}>
-                                {description}
-                            </p>
-                            <span className={styles.cardRead}>
-                                {isRTL ? "اقرأ" : "Читать"}
-                            </span>
-                        </div>
-                        <img className={styles.cardImage} src={imageUrl} />
-                    </Link>
-                </section>
-
-                <section className={styles.articles}>
-                    <h2
-                        className={styles.articlesTitle}
-                        style={{ textAlign: isRTL ? "right" : "left" }}
-                    >
-                        {isRTL ? "مقالات" : "Статьи"}
-                    </h2>
-
-                    {ARTICLES.length > 0 && (
-                        <p
-                            className={styles.articlesDescription}
-                            style={{ textAlign: isRTL ? "right" : "left" }}
-                        >
-                            {isRTL
-                                ? `إجمالي ${ARTICLES.length} مقال`
-                                : `Всего ${ARTICLES.length} статьи`}
-                        </p>
-                    )}
-
-                    <div className={styles.articlesList}>
-                        {ARTICLES.map(
-                            (
-                                { title, description, imageUrl, articleLink },
-                                index
-                            ) => (
-                                <Link
-                                    key={index}
-                                    className={styles.articleCard}
-                                    to={articleLink}
-                                    style={{
-                                        flexDirection: isRTL
-                                            ? "row-reverse"
-                                            : "row",
-                                    }}
-                                >
-                                    <div
-                                        className={styles.cardContent}
-                                        style={{
-                                            textAlign: isRTL ? "right" : "left",
-                                        }}
-                                    >
-                                        <h3 className={styles.cardTitle}>
-                                            {title}
-                                        </h3>
-                                        <p className={styles.cardDescription}>
-                                            {description}
-                                        </p>
-                                        <span className={styles.cardRead}>
-                                            {isRTL ? "اقرأ" : "Читать"}
-                                        </span>
-                                    </div>
-                                    <img
-                                        className={styles.cardImage}
-                                        src={imageUrl}
-                                    />
-                                </Link>
-                            )
-                        )}
-                    </div>
-                </section>
-            </main>
-        </Layout>
-    );
+                  <h3 className={styles.cardTitle}>
+                    {t(`homePage.${key}Article.title`)}
+                  </h3>
+                  <p className={styles.cardDescription}>
+                    {t(`homePage.${key}Article.description`)}
+                  </p>
+                  <span className={styles.cardRead}>
+                    {t("homePage.article.read")}
+                  </span>
+                </div>
+                <img className={styles.cardImage} src={imageUrl} />
+              </Link>
+            ))}
+          </div>
+        </section>
+      </main>
+    </Layout>
+  );
 };

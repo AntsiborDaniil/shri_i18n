@@ -1,31 +1,44 @@
-import { type FC } from "react";
+import { type FC,useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 
 import { Layout } from "@/components";
 
 import styles from "./styles.module.css";
 
-export const ArticleL10nRu: FC = () => (
-    <Layout>
-        <main className={styles.article}>
-            <h1>
-                Как адаптировать веб-приложение под российских пользователей:
-                нюансы локализации
-            </h1>
+export const ArticleL10nRu: FC = () => {
+    const { locale = "en" } = useParams<{ locale?: string }>();
+    const { t, i18n } = useTranslation();
+    const [isLoading, setIsLoading] = useState(true);
 
-            <p>
-                Российская аудитория — одна из крупнейших в Восточной Европе, с
-                более чем 98 000 000 интернет-пользователей. При этом около 78 %
-                предпочитают сайты на русском языке. При локализации важно
-                учитывать форматы чисел (например, десятичный разделитель —
-                запятая), валют и дат.
-            </p>
+    useEffect(() => {
+        const changeLanguage = async () => {
+            await i18n.changeLanguage(locale);
+            setIsLoading(false);
+        };
 
-            <p>
-                Также стоит обращать внимание на юридические аспекты: закон о
-                персональных данных требует хранения информации на серверах
-                внутри страны. Многие компании перешли на соответствие этому
-                требованию ещё с 1 сентября 2015 г.
-            </p>
-        </main>
-    </Layout>
-);
+        changeLanguage();
+    }, [locale, i18n]);
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+    return (
+        <Layout>
+            <main className={styles.article} dir={i18n.dir()}>
+                <h1>{t("articleL10nRu.title")}</h1>
+                <p>
+                    {t("articleL10nRu.text1", {
+                        usersCount: "98 000 000",
+                        percent: "78%",
+                    })}
+                </p>
+                <p>
+                    {t("articleL10nRu.text2", {
+                        date: "1 сентября 2015 г.",
+                    })}
+                </p>
+            </main>
+        </Layout>
+    );
+};

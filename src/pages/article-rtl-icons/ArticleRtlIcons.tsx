@@ -1,102 +1,71 @@
-import cn from "classnames";
-import { type FC } from "react";
+import { type FC, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom"; // Добавляем импорт useParams
 
 import { Layout } from "@/components";
-import {
-    ClockIcon,
-    GamepadIcon,
-    MagnifierIcon,
-    MessageIcon,
-    PaperNoteIcon,
-    WindowIcon,
+import { 
+  ClockIcon, GamepadIcon, MagnifierIcon, 
+  MessageIcon, PaperNoteIcon, WindowIcon 
 } from "@/icons";
 
 import styles from "./styles.module.css";
 
-export const ArticleRtlIcons: FC = () => (
+export const ArticleRtlIcons: FC = () => {
+  const { locale = "en" } = useParams<{ locale?: string }>(); 
+  const { t, i18n } = useTranslation();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const changeLanguage = async () => {
+      await i18n.changeLanguage(locale);
+      setIsLoading(false);
+    };
+    
+    changeLanguage();
+  }, [locale, i18n]);
+
+  if (isLoading) {
+    return <div>Loading...</div>; 
+  }
+
+  return (
     <Layout>
-        <main className={styles.article}>
-            <h1>
-                Какие иконки нужно разворачивать для RTL, <br /> а какие — нет?
-            </h1>
+      <main className={styles.article} dir={i18n.dir()}>
+        <h1 dangerouslySetInnerHTML={{ __html: t("articleRtlIcons.title") }} />
 
-            <p>
-                При адаптации интерфейсов под языки с письмом справа налево
-                (RTL) важно учитывать не только верстку и тексты, но и
-                визуальные элементы. Многие иконки требуют зеркального
-                отражения, а другие должны оставаться в оригинальном виде.
-                Неправильное отображение может сделать интерфейс менее
-                интуитивным и запутать пользователя.
-            </p>
+        <p>{t("articleRtlIcons.intro")}</p>
 
-            <section className={styles.section}>
-                <h2>Почему важно разворачивать иконки в RTL?</h2>
+        <section className={styles.section}>
+          <h2>{t("articleRtlIcons.whyImportant.title")}</h2>
+          <p>{t("articleRtlIcons.whyImportant.text")}</p>
+        </section>
 
-                <p>
-                    В RTL-интерфейсах меняется не только направление текста, но
-                    и логика взаимодействия. Иконки с явной направленностью
-                    должны отражать это изменение, чтобы сохранить естественный
-                    поток восприятия и соответствовать ожиданиям пользователя.
-                </p>
-            </section>
+        <section className={styles.section}>
+          <h2>{t("articleRtlIcons.flipIcons.title")}</h2>
+          <p>{t("articleRtlIcons.flipIcons.text")}</p>
+          <div className={styles.icons} data-testid="rtl-icons">
+            <PaperNoteIcon />
+            <MessageIcon />
+            <WindowIcon />
+          </div>
+        </section>
 
-            <section className={styles.section}>
-                <h2>Иконки, которые нужно разворачивать</h2>
+        <section className={styles.section}>
+          <h2>{t("articleRtlIcons.dontFlipIcons.title")}</h2>
+          <p>{t("articleRtlIcons.dontFlipIcons.text")}</p>
+          <div className={styles.icons} data-testid="not-rtl-icons">
+            <GamepadIcon />
+            <MagnifierIcon />
+            <ClockIcon />
+          </div>
+        </section>
 
-                <p>
-                    Разворачивайте иконки, которые имеют явное направление или
-                    асимметричную форму (за исключением примеров, которые мы
-                    рассмотрим позже в статье). Например, иконка заметок с явным
-                    направлением текста, асимметричная иконка пользовательского
-                    интерфейса окна приложения или иконка сообщения. Примеры
-                    таких иконок:
-                </p>
-
-                <div className={cn(styles.icons)} data-testid="rtl-icons">
-                    <PaperNoteIcon />
-                    <MessageIcon />
-                    <WindowIcon />
-                </div>
-            </section>
-
-            <section className={styles.section}>
-                <h2>Иконки, которые не нужно разворачивать</h2>
-
-                <p>
-                    Можно не разворачивать симметричные иконки. Иконки, которые
-                    являются логотипом или представляют бренд тоже не следует
-                    зеркалить — они должны оставаться узнаваемыми. Особое
-                    внимание уделите элементам, которые подчиняются «правилу
-                    правой руки» — если иконка интуитивно ассоциируется с
-                    действием правой руки (как держание предмета), её ориентация
-                    должна сохраняться независимо от направления письма. Примеры
-                    таких иконок:
-                </p>
-
-                <div className={styles.icons} data-testid="not-rtl-icons">
-                    <GamepadIcon />
-                    <MagnifierIcon />
-                    <ClockIcon />
-                </div>
-            </section>
-
-            <section className={styles.section}>
-                <h2>Заключение</h2>
-
-                <p>
-                    Грамотная работа с иконками в RTL-интерфейсах — важная часть
-                    локализации. Это не просто техническая деталь, а способ
-                    сделать интерфейс по-настоящему удобным для пользователей с
-                    разными культурными особенностями.
-                </p>
-
-                <p>
-                    <strong>Рекомендация:</strong> Разработайте внутренние
-                    стандарты для дизайнеров и разработчиков, чтобы обеспечить
-                    единый подход к работе с иконками во всех локализациях
-                    продукта.
-                </p>
-            </section>
-        </main>
+        <section className={styles.section}>
+          <h2>{t("articleRtlIcons.conclusion.title")}</h2>
+          <p>{t("articleRtlIcons.conclusion.text1")}</p>
+          <p dangerouslySetInnerHTML={{ __html: t("articleRtlIcons.conclusion.text2") }} />
+        </section>
+      </main>
     </Layout>
-);
+  );
+};
