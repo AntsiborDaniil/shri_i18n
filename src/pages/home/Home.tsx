@@ -9,7 +9,7 @@ import articleI18nKz from "@/assets/article-i18n-kz.jpg";
 import articleL10nRu from "@/assets/article-l10n-ru.jpg";
 import articleRtlIcons from "@/assets/article-rtl-icons.jpg";
 import articleUiBy from "@/assets/article-ui-by.jpg";
-import { Layout } from "@/components";
+import { Layout, Loader } from "@/components";
 import type { Locale } from "@/types";
 
 import styles from "./styles.module.css";
@@ -66,14 +66,16 @@ const getRegionArticleByLocale = (locale: Locale) => {
 
 export const Home: FC = () => {
   const { locale = "en" } = useParams<{ locale: Locale }>();
-  const { t, i18n } = useTranslation();
+  const { t, i18n, ready } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     i18n.changeLanguage(locale).finally(() => setIsLoading(false));
   }, [locale, i18n]);
 
-  if (isLoading) return <div>Loading...</div>;
+    if (!ready || isLoading) {
+        return <Loader />;
+    }
 
   const regionArticle = getRegionArticleByLocale(locale);
   const isRTL = i18n.dir() === "rtl";
