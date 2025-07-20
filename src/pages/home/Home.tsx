@@ -16,7 +16,7 @@ import styles from "./styles.module.css";
 
 const ARTICLES = [
   {
-    key: "rtlIcons",
+    key: "rtl",
     imageUrl: articleRtlIcons,
     articleLink: "article/rtl-icons",
   },
@@ -78,6 +78,24 @@ export const Home: FC = () => {
   const regionArticle = getRegionArticleByLocale(locale);
   const isRTL = i18n.dir() === "rtl";
 
+  // Функция для получения перевода статьи
+  const getArticleTranslation = (articleKey: string, field: 'title' | 'description') => {
+    const translation = t(`homePage.${articleKey}Article.${field}`);
+    // Если перевод не найден, возвращаем ключ как есть (для отладки)
+    return translation.startsWith('homePage.') ? articleKey : translation;
+  };
+
+  // Функция для отображения количества статей
+  const renderArticlesCount = () => {
+    const count = ARTICLES.length;
+    if (locale.startsWith('ru')) {
+      return `Всего ${count} ${count === 1 ? 'статья' : count < 5 ? 'статьи' : 'статей'}`;
+    } else if (locale.startsWith('ar')) {
+      return `إجمالي ${count} مقال`;
+    }
+    return `Total ${count} articles`;
+  };
+
   return (
     <Layout>
       <main className={styles.content} dir={i18n.dir()}>
@@ -121,10 +139,10 @@ export const Home: FC = () => {
               style={{ textAlign: isRTL ? "right" : "left" }}
             >
               <h3 className={styles.cardTitle}>
-                {t(`homePage.${regionArticle.key}Article.title`)}
+                {getArticleTranslation(regionArticle.key, 'title')}
               </h3>
               <p className={styles.cardDescription}>
-                {t(`homePage.${regionArticle.key}Article.description`)}
+                {getArticleTranslation(regionArticle.key, 'description')}
               </p>
               <span className={styles.cardRead}>
                 {t("homePage.article.read")}
@@ -147,7 +165,7 @@ export const Home: FC = () => {
               className={styles.articlesDescription}
               style={{ textAlign: isRTL ? "right" : "left" }}
             >
-              {t("homePage.articles.description", { count: ARTICLES.length })}
+              {renderArticlesCount()}
             </p>
           )}
 
@@ -164,10 +182,10 @@ export const Home: FC = () => {
                   style={{ textAlign: isRTL ? "right" : "left" }}
                 >
                   <h3 className={styles.cardTitle}>
-                    {t(`homePage.${key}Article.title`)}
+                    {getArticleTranslation(key, 'title')}
                   </h3>
                   <p className={styles.cardDescription}>
-                    {t(`homePage.${key}Article.description`)}
+                    {getArticleTranslation(key, 'description')}
                   </p>
                   <span className={styles.cardRead}>
                     {t("homePage.article.read")}

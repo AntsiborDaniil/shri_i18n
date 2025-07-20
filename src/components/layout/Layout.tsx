@@ -10,15 +10,20 @@ import styles from "./styles.module.css";
 export const Layout: FC<PropsWithChildren> = ({ children }) => {
     const { locale = "en" } = useParams<{ locale?: string }>();
     const isRTL = locale.startsWith("ar");
+    const brandName =
+        BRAND_NAMES[locale as keyof typeof BRAND_NAMES] || BRAND_NAMES.en;
 
     return (
         <>
             <div className={styles.header}>
-                <div className={styles.headerContent} dir={isRTL ? "rtl" : "ltr"}>
+                <div
+                    className={styles.headerContent}
+                    dir={isRTL ? "rtl" : "ltr"}
+                >
                     <Link className={styles.headerBrand} to="/">
                         <BrandLogoIcon />
                         <span className={styles.headerBrandText}>
-                            {BRAND_NAMES["ru"]}
+                            {brandName}
                         </span>
                     </Link>
 
